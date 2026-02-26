@@ -1,59 +1,118 @@
-public class Calculadora implements Calc {
-    
-    private Stack<Integer> pila; //pila para guardar los operandos
+public class Calculadora {
 
-    //se recibe la pila que se va a usar
-    public Calculadora(Stack<Integer> pila) {
-        this.pila = pila;
+    // instancia unica (patron Singleton)
+    private static Calculadora instancia;
+
+    // constructor privado para que no se pueda crear con new
+    private Calculadora() {}
+
+    // metodo para obtener la unica instancia
+    public static Calculadora getInstance() {
+        if (instancia == null) {
+            instancia = new Calculadora();
+        }
+        return instancia;
     }
 
-    /**
-     * The `Operate` function takes a string input representing a mathematical expression in postfix
-     * notation, evaluates it, and returns the result.
-     * 
-     * @param input The code you provided is a method called `Operate` that takes a string input
-     * representing a mathematical expression in postfix notation and evaluates it. It uses a stack
-     * (`pila`) to keep track of operands and perform the operations.
-     * @return The method is returning the result of the arithmetic operation performed on the input
-     * expression. The result is obtained by evaluating the expression using a stack data structure to
-     * store operands and perform operations based on the operators encountered in the input string.
-     */
-    public int Operate(String input) {
+    // metodo que define la precedencia de operadores
+    private int precedencia(char op) {
+        if (op == '+' || op == '-') return 1;
+        if (op == '*' || op == '/') return 2;
+        return 0;
+    }
 
-        String[] partes = input.split(" "); // se separa la expresion por espacios
+    // convierte una expresion infix a postfix usando una pila
+    public String infixToPostfix(String infix, Stack<Character> stack) {
 
-        for (int i = 0; i < partes.length; i++) { //se recorre la expresion
+        String resultado = "";
+        String numero = "";
 
-            String actual = partes[i];
+        for (int i = 0; i < infix.length(); i++) {
 
-            // si es un operando
-            if (actual.equals("0") || actual.equals("1") || actual.equals("2") ||
-                actual.equals("3") || actual.equals("4") || actual.equals("5") ||
-                actual.equals("6") || actual.equals("7") || actual.equals("8") ||
-                actual.equals("9")) {
+            char c = infix.charAt(i);
 
-                pila.push(Integer.parseInt(actual));
+            // se ignoran espacios
+            if (c == ' ') {
+                continue;
             }
-            // si es operador
-            else {
-                int b = pila.pop();
-                int a = pila.pop();
 
-                if (actual.equals("+")) {
-                    pila.push(a + b);
+            // si es numero lo va formando (ej: 10, 20)
+            if (Character.isDigit(c)) {
+                numero += c;
+            } else {
+
+                // si ya termino de leer un numero lo agrega al resultado
+                if (!numero.equals("")) {
+                    resultado += numero + " ";
+                    numero = "";
                 }
-                if (actual.equals("-")) {
-                    pila.push(a - b);
-                }
-                if (actual.equals("*")) {
-                    pila.push(a * b);
-                }
-                if (actual.equals("/")) {
-                    pila.push(a / b);
+
+                // si es parentesis izquierdo lo mete a la pila
+                if (c == '(') {
+                    stack.push(c);
+
+                    // si es parentesis derecho saca todo hasta encontrar '('
+                } else if (c == ')') {
+
+                    while (!stack.isEmpty() && stack.peek() != '(') {
+                        resultado += stack.pop() + " ";
+                    }
+
+                    stack.pop(); // quitar el '('
+
+                    // si es operador revisa precedencia
+                } else if (c == '+' || c == '-' || c == '*' || c == '/') {
+
+                    while (!stack.isEmpty() &&
+                            precedencia(c) <= precedencia(stack.peek())) {
+
+                        resultado += stack.pop() + " ";
+                    }
+
+                    stack.push(c);
                 }
             }
         }
 
-        return pila.pop();
+        // por si termina en numero
+        if (!numero.equals("")) {
+            resultado += numero + " ";
+        }
+
+        // vaciar la pila al final
+        while (!stack.isEmpty()) {
+            resultado += stack.pop() + " ";
+        }
+
+        return resultado.trim();
+    }
+
+    // evalua una expresion en postfix
+    public int evaluarPostfix(String postfix, Stack<Integer> stack) {
+
+        String[] partes = postfix.split(" ");
+
+        for (String actual : partes) {
+
+            try {
+                // si es numero lo mete a la pila
+                int numero = Integer.parseInt(actual);
+                stack.push(numero);
+
+            } catch (NumberFormatException e) {
+
+                // si no es numero entonces es operador
+                int b = stack.pop();
+                int a = stack.pop();
+
+                if (actual.equals("+")) stack.push(a + b);
+                if (actual.equals("-")) stack.push(a - b);
+                if (actual.equals("*")) stack.push(a * b);
+                if (actual.equals("/")) stack.push(a / b);
+            }
+        }
+
+        // el resultado final queda en la pila
+        return stack.pop();
     }
 }
