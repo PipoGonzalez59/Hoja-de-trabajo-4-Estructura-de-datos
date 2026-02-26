@@ -1,26 +1,31 @@
 import java.util.ArrayList;
 
-public class StackArrayList<T> implements Stack<T>{
-    public ArrayList<T> datos;
-//lista para guardar los datos
-    public StackArrayList (){
-        datos = new ArrayList<T>();
-    }
-//agrega un elemento a la pila
-    public void push(T item){
-        datos.add(item);
+// implementacion del stack usando ArrayList
+public class StackArrayList<T> extends AbstractStack<T> {
+
+    // lista interna donde se guardan los datos
+    private ArrayList<T> list = new ArrayList<>();
+
+    @Override
+    public void push(T item) {
+        list.add(item);   // agrega al final
+        count++;          // aumenta el contador
     }
 
-//Quita el ultimo elemento de la pila y lo tenorna
     @Override
     public T pop() {
-        T ultimo = datos.get(datos.size() - 1);
-        datos.remove(datos.size() - 1);
-        return ultimo;
+        if (isEmpty()) {
+            return null;
+        }
+        count--;
+        return list.remove(list.size() - 1); // quita el ultimo
     }
-//Retorna el ultimo elemento de la pila sin quitarlo
+
     @Override
     public T peek() {
-        return datos.get(datos.size() - 1);
+        if (isEmpty()) {
+            return null;
+        }
+        return list.get(list.size() - 1); // devuelve el ultimo
     }
 }
