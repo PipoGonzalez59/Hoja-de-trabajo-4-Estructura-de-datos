@@ -1,5 +1,3 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.Scanner;
 
 public class Principal {
@@ -8,26 +6,39 @@ public class Principal {
 
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("Ingrese la ubicacion del archivo de texto:");
-        String ruta = sc.nextLine(); //porfavor pongan la ruta exacta del archivo de texto
+        // se pide la ruta del archivo
+        System.out.println("Ingrese la ruta del archivo:"); //porfavor pongan la ruta exacta de acceso del archivo, y sin comillas
+        String ruta = sc.nextLine();
 
-        try {
-            BufferedReader lector = new BufferedReader(new FileReader(ruta));
+        // se pide el tipo de implementacion del stack
+        System.out.println("Seleccione implementación de Stack:");
+        System.out.println("1. ArrayList");
+        System.out.println("2. Vector");
+        System.out.println("3. Lista");
 
-            Stack<Integer> pila = new StackArrayList<>();
-             Calculadora calculadora = new Calculadora(pila);
+        int opcion = sc.nextInt();
 
-            String linea;
+        // se crean dos stacks (uno para operadores y otro para numeros)
+        Stack<Character> stackOperadores = StackFactory.getStack(opcion);
+        Stack<Integer> stackNumeros = StackFactory.getStack(opcion);
 
-            while ((linea = lector.readLine()) != null) {
-                int resultado = calculadora.Operate(linea);
-                System.out.println("Resultado: " + resultado);
-            }
+        // se obtiene la unica instancia de la calculadora
+        Calculadora calc = Calculadora.getInstance();
 
-            lector.close();
+        // se lee la expresion del archivo
+        Lector lector = new Lector();
+        String infix = lector.leerArchivo(ruta);
 
-        } catch (Exception e) {
-            System.out.println("Error al leer el archivo o al calcular");
-        }
+        System.out.println("Expresión infix: " + infix);
+
+        // convertir a postfix
+        String postfix = calc.infixToPostfix(infix, stackOperadores);
+
+        System.out.println("Expresión postfix: " + postfix);
+
+        // evaluar postfix
+        int resultado = calc.evaluarPostfix(postfix, stackNumeros);
+
+        System.out.println("Resultado: " + resultado);
     }
 }
